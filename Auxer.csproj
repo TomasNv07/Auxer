@@ -8,7 +8,7 @@
     <Nullable>disable</Nullable>
     <AssemblyName>Auxer</AssemblyName>
     <RootNamespace>Auxer</RootNamespace>
-    <Version>1.0.0</Version>
+    <Version>1.1.0</Version>
     <!-- Keep the version plain ("1.0.0"), without the git commit hash the SDK would append -->
     <IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
     <Product>Auxer</Product>
