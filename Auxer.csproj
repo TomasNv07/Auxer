@@ -9,6 +9,8 @@
     <AssemblyName>Auxer</AssemblyName>
     <RootNamespace>Auxer</RootNamespace>
     <Version>1.0.0</Version>
+    <!-- Keep the version plain ("1.0.0"), without the git commit hash the SDK would append -->
+    <IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
     <Product>Auxer</Product>
     <Description>Per-app volume control with global hotkeys</Description>
     <Copyright>Copyright (c) 2026 TomasNv07</Copyright>
