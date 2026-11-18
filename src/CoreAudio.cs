@@ -11,11 +11,14 @@ sealed class AudioApp : IDisposable
 
     public string Name { get; }
     public bool IsActive { get; private set; }
+    /// <summary>Full path of the program (used for its icon); null if Windows won't tell us.</summary>
+    public string ExePath { get; private set; }
 
-    internal void Add(object session, bool active)
+    internal void Add(object session, bool active, string exePath)
     {
         sessions.Add(session);
         IsActive |= active;
+        ExePath ??= exePath;
     }
 
     IEnumerable<ISimpleAudioVolume> Volumes => sessions.OfType<ISimpleAudioVolume>();
@@ -78,7 +81,7 @@ static class AudioSessions
     public static List<AudioApp> GetApps(string onlyName = null)
     {
         var byName = new Dictionary<string, AudioApp>(StringComparer.OrdinalIgnoreCase);
-        var names = new Dictionary<uint, string>();
+        var names = new Dictionary<uint, (string Name, string Path)>();
         IMMDeviceEnumerator enumerator = null;
         IMMDeviceCollection devices = null;
         try
@@ -109,14 +112,15 @@ static class AudioSessions
                             if (state == AudioSessionStateExpired) continue;
                             ctl.GetProcessId(out uint pid);
                             if (pid == 0) continue;
-                            if (!names.TryGetValue(pid, out var name))
-                                names[pid] = name = ProcessName(pid);
+                            if (!names.TryGetValue(pid, out var info))
+                                names[pid] = info = ProcessInfo(pid);
+                            var name = info.Name;
                             if (name == null) continue;
                             if (onlyName != null && !name.Equals(onlyName, StringComparison.OrdinalIgnoreCase)) continue;
 
                             if (!byName.TryGetValue(name, out var app))
                                 byName[name] = app = new AudioApp(name);
-                            app.Add(ctl, state == AudioSessionStateActive);
+                            app.Add(ctl, state == AudioSessionStateActive, info.Path);
                             kept = true;
                         }
                         catch (COMException) { }
@@ -150,10 +154,11 @@ static class AudioSessions
         var hwnd = GetForegroundWindow();
         if (hwnd == IntPtr.Zero) return null;
         GetWindowThreadProcessId(hwnd, out uint pid);
-        return pid == 0 ? null : ProcessName(pid);
+        return pid == 0 ? null : ProcessInfo(pid).Name;
     }
 
-    static string ProcessName(uint pid)
+    /// <summary>Program name ("Spotify") and full exe path for a process.</summary>
+    static (string Name, string Path) ProcessInfo(uint pid)
     {
         var h = OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION, false, pid);
         if (h != IntPtr.Zero)
@@ -163,12 +168,15 @@ static class AudioSessions
                 var buf = new char[1024];
                 uint len = (uint)buf.Length;
                 if (QueryFullProcessImageName(h, 0, buf, ref len))
-                    return Path.GetFileNameWithoutExtension(new string(buf, 0, (int)len));
+                {
+                    var path = new string(buf, 0, (int)len);
+                    return (Path.GetFileNameWithoutExtension(path), path);
+                }
             }
             finally { CloseHandle(h); }
         }
-        try { using var p = System.Diagnostics.Process.GetProcessById((int)pid); return p.ProcessName; }
-        catch { return null; }
+        try { using var p = System.Diagnostics.Process.GetProcessById((int)pid); return (p.ProcessName, null); }
+        catch { return (null, null); }
     }
 
     static void Release(object o)

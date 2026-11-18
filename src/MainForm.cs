@@ -384,11 +384,12 @@ sealed class MainForm : ThemedForm
     }
 }
 
-/// <summary>Mixer card: name | slider | 45% | mute, add-hotkey.</summary>
+/// <summary>Mixer card: icon name | slider | 45% | mute, add-hotkey. Compact (tray panel): icon only, no name.</summary>
 sealed class MixerRow : SegmentRow
 {
     public AudioApp App;
-    readonly TwoLineLabel name;
+    readonly AppIconView icon;
+    readonly TwoLineLabel name; // null in compact mode
     readonly VolumeSlider slider;
     readonly ValueLabel value;
     readonly IconButton mute;
@@ -401,8 +402,9 @@ sealed class MixerRow : SegmentRow
     public MixerRow(AudioApp app, Action<string> addHotkey = null, Action<string> hide = null, bool compact = false) : base(compact ? 52 : 58)
     {
         App = app;
-        name = Add(new TwoLineLabel(), S(compact ? 104 : 150), stretch: true);
-        slider = Add(new VolumeSlider(), 0);
+        icon = Add(new AppIconView(), S(36), stretch: true);
+        if (!compact) name = Add(new TwoLineLabel(), S(132), separator: false, stretch: true);
+        slider = Add(new VolumeSlider(), 0, separator: !compact); // tray panel: slider right next to the icon
         value = Add(new ValueLabel(), S(50), separator: false, stretch: true);
         mute = Add(new IconButton("", "Mute"), S(34));
 
@@ -435,8 +437,8 @@ sealed class MixerRow : SegmentRow
                 DarkMenu.Add(menu, $"Hide {Theme.Pretty(n)}", false, () => BeginInvoke(() => hide(n)));
                 DarkMenu.ShowOnce(menu, source, at);
             }
-            foreach (Control c in new Control[] { this, name, value })
-                c.MouseUp += (s, e) => { if (e.Button == MouseButtons.Right) ShowMenu((Control)s, e.Location); };
+            foreach (Control c in new Control[] { this, icon, name, value })
+                if (c != null) c.MouseUp += (s, e) => { if (e.Button == MouseButtons.Right) ShowMenu((Control)s, e.Location); };
         }
     }
 
@@ -447,8 +449,12 @@ sealed class MixerRow : SegmentRow
         syncing = true;
         int pct = Math.Clamp(App.Percent, 0, 100);
         bool muted = App.Muted;
-        name.Title = Theme.Pretty(App.Name);
-        name.Description = muted ? "Muted" : App.IsActive ? "Playing" : "Idle";
+        icon.Set(App.ExePath, App.Name, muted);
+        if (name != null)
+        {
+            name.Title = Theme.Pretty(App.Name);
+            name.Description = muted ? "Muted" : App.IsActive ? "Playing" : "Idle";
+        }
         slider.Value = pct;
         slider.Muted = muted;
         value.Set(pct, muted);

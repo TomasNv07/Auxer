@@ -35,7 +35,7 @@ sealed class TrayFlyout : Form
         Font = Theme.Body;
         DoubleBuffered = true;
         Padding = new Padding(S(14), S(10), S(14), S(14));
-        Width = S(430);
+        Width = S(380);
 
         header = new PageHeader("Volume", "");
         var open = new FlatButton("Open Auxer", glyph: "");
