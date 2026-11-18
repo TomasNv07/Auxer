@@ -1,0 +1,39 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net9.0-windows</TargetFramework>
+    <UseWindowsForms>true</UseWindowsForms>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>disable</Nullable>
+    <AssemblyName>Auxer</AssemblyName>
+    <RootNamespace>Auxer</RootNamespace>
+    <Version>1.0.0</Version>
+    <Product>Auxer</Product>
+    <Description>Per-app volume control with global hotkeys</Description>
+    <Copyright>Copyright (c) 2026 TomasNv07</Copyright>
+    <RepositoryUrl>https://github.com/TomasNv07/Auxer</RepositoryUrl>
+    <ApplicationIcon>app.ico</ApplicationIcon>
+    <ApplicationHighDpiMode>SystemAware</ApplicationHighDpiMode>
+
+    <!-- Keep the footprint small -->
+    <InvariantGlobalization>true</InvariantGlobalization>
+    <SatelliteResourceLanguages>en</SatelliteResourceLanguages>
+    <ConcurrentGarbageCollection>false</ConcurrentGarbageCollection>
+    <ServerGarbageCollection>false</ServerGarbageCollection>
+    <!-- No designer is used; skip the designer-serialization analyzer -->
+    <NoWarn>$(NoWarn);WFO1000</NoWarn>
+
+    <!-- dotnet publish -c Release  ->  one small Auxer.exe -->
+    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+    <SelfContained>false</SelfContained>
+    <PublishSingleFile>true</PublishSingleFile>
+    <DebugType Condition="'$(Configuration)' == 'Release'">none</DebugType>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="app.ico" LogicalName="app.ico" />
+    <Compile Remove="tools\**" />
+  </ItemGroup>
+
+</Project>
